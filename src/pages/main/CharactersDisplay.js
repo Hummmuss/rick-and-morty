@@ -1,13 +1,27 @@
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import Card from "./CharacterCard";
 import {getCharacters} from 'rickmortyapi'
 import styled from "styled-components";
 import PopUp from "../pop up/PopUp";
+import ArrowRight from "../../assets/arrow-right.png";
+import ArrowLeft from "../../assets/arrow-left.png";
+
 
 const CardWrapper = styled.div`
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+`
+const ArrowContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  width: 400px;
+  justify-content: space-between;
+`
+
+const Arrow = styled.img`
+  height: 40px;
+  width: 50px;
 `
 const Wrapper = styled.div`
   display: flex;
@@ -64,40 +78,68 @@ function CharactersDisplay() {
     const [typeFilter, setTypeFilter] = useState("");
     const [genderFilter, setGenderFilter] = useState("");
 
-    const [filteredCharacters, setFilteredCharacters] = useState([]);
 
     const [showPopUp, setShowPopUp] = useState(false);
     const [character, setCharacter] = useState({});
 
-
-    useEffect(() => {
-        const getAndSetCharacters = async () => {
-            let characters = [];
-            for (let page = 1; page <= 42; page++) {
-                const allCharacters = await getCharacters({page: page});
-                if (allCharacters) {
-                    characters = characters.concat(allCharacters.data.results);
-                }
-            }
-            if (characters.length > 0) {
-                setCharactersList(characters);
-            }
-        };
-        getAndSetCharacters();
-    }, []);
-
-    useEffect(() => {
-        if (charactersList.length > 0) {
-            const filtered = charactersList.filter(character => (character.name.toLowerCase().includes(nameFilter.toLowerCase()) || nameFilter === "") && (character.status.toLowerCase().includes(statusFilter.toLowerCase()) || statusFilter === "") && (character.species.toLowerCase().includes(speciesFilter.toLowerCase()) || speciesFilter === "") && (("unknown".includes(typeFilter.toLowerCase()) && character.type === "") || (character.type.toLowerCase().includes(typeFilter.toLowerCase()) || typeFilter === "")) && (character.gender.toLowerCase() === genderFilter.toLowerCase() || genderFilter === ""));
-            setFilteredCharacters(filtered);
+    let pageNumber = parseInt(localStorage.getItem('page'))
+    const handleLeftClick = () => {
+        if (pageNumber > 1) {
+            pageNumber -= 1;
+            localStorage.setItem('page', pageNumber)
+            getAndSetCharacters();
         }
-    }, [charactersList, nameFilter, statusFilter, speciesFilter, typeFilter, genderFilter]);
+    };
+
+    const handleRightClick = () => {
+        if (pageNumber <= 41) {
+            pageNumber += 1;
+            localStorage.setItem('page', pageNumber)
+            getAndSetCharacters();
+        }
+        if (pageNumber === undefined) {
+            pageNumber = 1;
+            localStorage.setItem('page', pageNumber)
+            getAndSetCharacters();
+        }
+    };
+
+
+
+    const getAndSetCharacters = async () => {
+        let TwentyCharactersPerPage = [];
+        for (let i = 20 * pageNumber - 19; i <= 20 * pageNumber; i++) {
+            TwentyCharactersPerPage.push(i);
+        }
+
+        const allCharacters = await getCharacters({
+            page: pageNumber,
+            name: nameFilter,
+            status: statusFilter,
+            type: typeFilter,
+            species: speciesFilter,
+            gender: genderFilter
+        });
+        console.log(nameFilter)
+        if (allCharacters) {
+            setCharactersList(allCharacters.data.results);
+        }
+    };
+
+    useEffect(() => {
+        getAndSetCharacters();
+        localStorage.setItem('page', 1)
+        console.log(charactersList)
+    }, [nameFilter, statusFilter, typeFilter, speciesFilter, genderFilter])
+
 
     function Up() {
         window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
-    return (<Wrapper>
+
+    return (
+        <Wrapper>
             Search through characters:
             <Search>
                 <SearchItem type="text" placeholder="Name" onChange={e => setNameFilter(e.target.value)}/>
@@ -107,12 +149,18 @@ function CharactersDisplay() {
                 <SearchItem type="text" placeholder="Gender" onChange={e => setGenderFilter(e.target.value)}/>
             </Search>
             <CardWrapper>
-                {(filteredCharacters.length > 0 ? filteredCharacters : charactersList).map((character) => (
-                    <Card character={character} setShowPopUp={setShowPopUp} setCharacter={setCharacter}/>))}
+                {charactersList ? charactersList.map((character) => (
+                    <Card character={character} setShowPopUp={setShowPopUp} setCharacter={setCharacter}/>)) : "No characters"}
             </CardWrapper>
             {showPopUp && <PopUp character={character} active={showPopUp} setActive={setShowPopUp}/>}
             <UpButton onClick={() => Up()}>Up!</UpButton>
-        </Wrapper>);
+             <ArrowContainer>
+                 {pageNumber > 1 ? <Arrow src={ArrowLeft} onClick={handleLeftClick}/> : <div></div>}
+                 {charactersList.length >= 20 && <Arrow src={ArrowRight} onClick={handleRightClick}/>}
+            </ArrowContainer>
+
+        </Wrapper>
+    );
 }
 
 export default CharactersDisplay;

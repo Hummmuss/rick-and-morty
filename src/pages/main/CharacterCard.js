@@ -63,8 +63,9 @@ const Card = ({character, setShowPopUp, setCharacter}) => {
         setShowPopUp(true);
         setCharacter(data)
     }
+
     return (
-        <CharacterCard onClick={() => Click(character)}  character={character} >
+        <CharacterCard onClick={() => Click(character)} character={character}>
             <Image loading="lazy" src={character.image} alt={character.name}/>
             <div>
                 <Title>{character.name}</Title>
@@ -83,12 +84,14 @@ const Card = ({character, setShowPopUp, setCharacter}) => {
                     </PropertiesContent>
                 </PropertiesName>
 
-                <PropertiesName>
-                    type:{' '}
-                    <PropertiesContent>
-                        {character.type ? character.type : "unknown"}
-                    </PropertiesContent>
-                </PropertiesName>
+                {character.type &&
+                    <PropertiesName>
+                        type:{' '}
+                        <PropertiesContent>
+                            {character.type}
+                        </PropertiesContent>
+                    </PropertiesName>
+                }
 
                 <PropertiesName>
                     gender:{' '}
