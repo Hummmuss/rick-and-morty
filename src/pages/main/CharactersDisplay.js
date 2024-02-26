@@ -5,7 +5,7 @@ import styled from "styled-components";
 import PopUp from "../pop up/PopUp";
 import ArrowRight from "../../assets/arrow-right.png";
 import ArrowLeft from "../../assets/arrow-left.png";
-
+import {get} from "axios";
 
 const CardWrapper = styled.div`
   display: flex;
@@ -22,6 +22,7 @@ const ArrowContainer = styled.div`
 const Arrow = styled.img`
   height: 40px;
   width: 50px;
+  cursor: pointer;
 `
 const Wrapper = styled.div`
   display: flex;
@@ -69,7 +70,7 @@ const SearchItem = styled.input`
   padding: 10px;
 `
 
-function CharactersDisplay() {
+const CharactersDisplay = () => {
     const [charactersList, setCharactersList] = useState([])
 
     const [nameFilter, setNameFilter] = useState("");
@@ -81,8 +82,13 @@ function CharactersDisplay() {
 
     const [showPopUp, setShowPopUp] = useState(false);
     const [character, setCharacter] = useState({});
+    const getPageNumber = () => {
+        return parseInt(localStorage.getItem('page'))
+    }
 
-    let pageNumber = parseInt(localStorage.getItem('page'))
+    let pageNumber = getPageNumber()
+
+
     const handleLeftClick = () => {
         if (pageNumber > 1) {
             pageNumber -= 1;
@@ -92,6 +98,9 @@ function CharactersDisplay() {
     };
 
     const handleRightClick = () => {
+        if(!pageNumber) {
+            localStorage.setItem('page', 1)
+        }
         if (pageNumber <= 41) {
             pageNumber += 1;
             localStorage.setItem('page', pageNumber)
@@ -105,13 +114,8 @@ function CharactersDisplay() {
     };
 
 
-
     const getAndSetCharacters = async () => {
-        let TwentyCharactersPerPage = [];
-        for (let i = 20 * pageNumber - 19; i <= 20 * pageNumber; i++) {
-            TwentyCharactersPerPage.push(i);
-        }
-
+        let pageNumber = getPageNumber()
         const allCharacters = await getCharacters({
             page: pageNumber,
             name: nameFilter,
@@ -120,16 +124,18 @@ function CharactersDisplay() {
             species: speciesFilter,
             gender: genderFilter
         });
-        console.log(nameFilter)
         if (allCharacters) {
             setCharactersList(allCharacters.data.results);
         }
     };
+    getAndSetCharacters()
 
     useEffect(() => {
-        getAndSetCharacters();
-        localStorage.setItem('page', 1)
-        console.log(charactersList)
+        if (nameFilter && statusFilter && typeFilter && speciesFilter && genderFilter) {
+            localStorage.setItem('page', 1)
+            console.log(nameFilter)
+            getAndSetCharacters()
+        }
     }, [nameFilter, statusFilter, typeFilter, speciesFilter, genderFilter])
 
 
@@ -140,8 +146,8 @@ function CharactersDisplay() {
 
     return (
         <Wrapper>
-            Search through characters:
             <Search>
+                Search through characters:
                 <SearchItem type="text" placeholder="Name" onChange={e => setNameFilter(e.target.value)}/>
                 <SearchItem type="text" placeholder="Status" onChange={e => setStatusFilter(e.target.value)}/>
                 <SearchItem type="text" placeholder="Species" onChange={e => setSpeciesFilter(e.target.value)}/>
@@ -150,13 +156,14 @@ function CharactersDisplay() {
             </Search>
             <CardWrapper>
                 {charactersList ? charactersList.map((character) => (
-                    <Card character={character} setShowPopUp={setShowPopUp} setCharacter={setCharacter}/>)) : "No characters"}
+                    <Card character={character} setShowPopUp={setShowPopUp}
+                          setCharacter={setCharacter}/>)) : "No characters"}
             </CardWrapper>
             {showPopUp && <PopUp character={character} active={showPopUp} setActive={setShowPopUp}/>}
             <UpButton onClick={() => Up()}>Up!</UpButton>
-             <ArrowContainer>
-                 {pageNumber > 1 ? <Arrow src={ArrowLeft} onClick={handleLeftClick}/> : <div></div>}
-                 {charactersList.length >= 20 && <Arrow src={ArrowRight} onClick={handleRightClick}/>}
+            <ArrowContainer>
+                {pageNumber > 1 ? <Arrow src={ArrowLeft} onClick={handleLeftClick}/> : <div></div>}
+                {charactersList.length >= 20 && <Arrow src={ArrowRight} onClick={handleRightClick}/>}
             </ArrowContainer>
 
         </Wrapper>

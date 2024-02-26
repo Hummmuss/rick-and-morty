@@ -13,8 +13,6 @@ const PopUpBackground = styled.div`
   align-items: center;
 `
 const PopUpCard = styled.div`
-
-  padding: 20px;
   background-color: white;
   border-radius: 30px;
   @media (width < 550px) {
@@ -22,9 +20,9 @@ const PopUpCard = styled.div`
   }
 `
 const PopUpImage = styled.img`
-  width: 11vw;
-  height: 11vw;
-  border-radius: 6vw;
+  width: 50%;
+  height: 50%;
+  border-radius: 50%;
   @media (width < 550px) {
     width: 30vw;
     height: 30vw;
@@ -32,13 +30,15 @@ const PopUpImage = styled.img`
   }
 `
 const PopUpTop = styled.div`
-
+  padding: 20px;
+  border-radius: 30px 30px 0 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  flex-wrap: wrap;
+  background-color: #eef1ec;
 `
 const PopUpBottom = styled.div`
-  height: auto;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -46,13 +46,13 @@ const PopUpBottom = styled.div`
 
 `
 const PopUpTitle = styled.h1`
-  width: 29vw;
+  max-width: 400px;
   text-align: center;
   font-family: 'Darumadrop One', sans-serif;
-  font-size: 3vw;
+  font-size: 2.5rem;
   color: #226c43;
   @media (width < 550px) {
-    font-size: 8vw;
+
     line-height: 8vw;
     width: 40vw;
     border-radius: 30vw;
@@ -79,9 +79,33 @@ const PopUpSubDataValue = styled.span`
   color: #226c43;
 `
 const PopUp = ({character, active, setActive}) => {
-    function getArrayNumbers(arr) {
-        const lastCharacters = arr.map((url) => url.split('/').pop());
-        return lastCharacters.join(', ');
+    function getArrayNumbers(array) {
+        const lastCharacters = array.map((url) => url.split('/').pop());
+        let arr = lastCharacters.join();
+        let result = '';
+        arr = arr.split(',').map(Number);
+        let start = arr[0];
+        let end;
+
+        console.log(arr)
+        for (let i = 1; i < arr.length; i++) {
+            if (arr[i] !== arr[i-1] + 1) {
+                end = arr[i-1];
+                if (start !== end) {
+                    result += start + '-' + end + ', ';
+                } else {
+                    result += start + ', ';
+                }
+                start = arr[i];
+            }
+        }
+        end = arr[arr.length - 1];
+        if (start !== end) {
+            result += start + '-' + end;
+        } else {
+            result += start;
+        }
+        return result;
     }
 
     return (
